@@ -1,0 +1,8 @@
+# Dependency directories 
+node_modules/
+
+# Avoid from macOS traces
+.DS_STORE
+
+# Environment variables
+.env
