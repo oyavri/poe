@@ -21,15 +21,15 @@ CREATE TABLE IF NOT EXISTS "Call" (
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     created_by UUID NOT NULL,
     active BOOLEAN NOT NULL,
-    CONSTRAINT fk_call_user FOREIGN KEY (createdBy) REFERENCES "User"(id)
+    CONSTRAINT fk_call_user FOREIGN KEY (created_by) REFERENCES "User"(id)
 );
 
 CREATE TABLE IF NOT EXISTS "Participants" (
     call_id UUID NOT NULL,
     user_id UUID NOT NULL,
-    PRIMARY KEY (callId, userId),
-    CONSTRAINT fk_participants_call FOREIGN KEY (callId) REFERENCES "Call"(id),
-    CONSTRAINT fk_participants_user FOREIGN KEY (userId) REFERENCES "User"(id)
+    PRIMARY KEY (call_id, user_id),
+    CONSTRAINT fk_participants_call FOREIGN KEY (call_id) REFERENCES "Call"(id),
+    CONSTRAINT fk_participants_user FOREIGN KEY (user_id) REFERENCES "User"(id)
 );
 
 CREATE TABLE IF NOT EXISTS "Transcription" (
@@ -38,5 +38,5 @@ CREATE TABLE IF NOT EXISTS "Transcription" (
     status transcription_status NOT NULL,
     transcription TEXT,
     initiated_at TIMESTAMP NOT NULL,
-    CONSTRAINT fk_transcription_call FOREIGN KEY (callId) REFERENCES "Call"(id)
+    CONSTRAINT fk_transcription_call FOREIGN KEY (call_id) REFERENCES "Call"(id)
 );
