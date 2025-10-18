@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS "User" (
 CREATE TABLE IF NOT EXISTS "Call" (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title TEXT NOT NULL,
-    duration NUMBER NOT NULL, 
+    duration INT NOT NULL, 
     createdAt TIMESTAMP NOT NULL DEFAULT NOW(),
     createdBy UUID NOT NULL,
     active BOOLEAN NOT NULL,
