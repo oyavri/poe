@@ -4,13 +4,14 @@ import { logger } from './logger.js';
 
 import { validateLogin, validateRegister } from './validators/userValidator.js';
 import { userController } from './controllers/userController.js';
+import { authenticate } from './middlewares/authentication.js';
 
 const app = express();
 app.use(express.json());
 
 app.post('/auth/register', validateRegister, userController.register);
 app.post('/auth/login', validateLogin, userController.login);
-// app.get('/auth/me');
+app.get('/auth/me', authenticate, userController.getMe);
 // app.post('/calls');
 // app.get('/calls');
 // app.get('/calls/:id');

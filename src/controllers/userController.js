@@ -20,5 +20,8 @@ export const userController = {
         } catch (err) {
             res.status(400).json({ error: err.message });
         }
+    },
+    getMe(req, res) {
+        return res.status(200).json({ user: req.user });    
     }
 };
