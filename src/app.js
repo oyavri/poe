@@ -2,14 +2,14 @@ import express from 'express';
 import { config } from './config.js';
 import { logger } from './logger.js';
 
-import { validateRegister } from './validators/userValidator.js';
+import { validateLogin, validateRegister } from './validators/userValidator.js';
 import { userController } from './controllers/userController.js';
 
 const app = express();
 app.use(express.json());
 
 app.post('/auth/register', validateRegister, userController.register);
-// app.post('/auth/login');
+app.post('/auth/login', validateLogin, userController.login);
 // app.get('/auth/me');
 // app.post('/calls');
 // app.get('/calls');

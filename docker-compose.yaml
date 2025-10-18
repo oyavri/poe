@@ -50,6 +50,7 @@ services:
       CALL_MANAGEMENT_HOSTNAME: ${CALL_MANAGEMENT_HOSTNAME:-127.0.0.1}
       DATABASE_URL: ${DATABASE_URL}
       DATABASE_POOL_SIZE: ${DATABASE_POOL_SIZE}
+      JWT_SECRET: ${JWT_SECRET}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 30s
