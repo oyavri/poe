@@ -1,18 +1,14 @@
-require('dotenv').config()
-
-const express = require('express')
+import express from 'express';
+import { config } from './config.js';
+import { logger } from './logger.js';
+import { db } from './db.js';
 
 const app = express();
-const PORT = process.env.PORT || 3000
 
-app.get('/', (req, res) => {
-    res.send('Hello World!');
-});
-
-app.get('/health', (req, res) => {
-    res.status(200).send('Healthy');
+app.get('/health', async (req, res) => {
+    res.status(200).send('OK');
 })
 
-app.listen(PORT, () => {
-    console.log(`Example app listening on port ${PORT}`);
+app.listen(config.port, () => {
+    logger.info(`Example app listening on ${config.hostname}:${config.port}`);
 });

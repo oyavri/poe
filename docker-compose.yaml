@@ -3,6 +3,7 @@ services:
     image: postgres:18
     container_name: poe-postgres
     restart: unless-stopped
+    hostname: pgdb
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -45,10 +46,10 @@ services:
       redis:
         condition: service_healthy
     environment:
-      PORT: ${CALL_MANAGEMENT_PORT:-3000}
+      CALL_MANAGEMENT_PORT: ${CALL_MANAGEMENT_PORT:-3000}
+      CALL_MANAGEMENT_HOSTNAME: ${CALL_MANAGEMENT_HOSTNAME:-127.0.0.1}
       DATABASE_URL: ${DATABASE_URL}
-    restart:
-      unless-stopped
+      DATABASE_POOL_SIZE: ${DATABASE_POOL_SIZE}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 30s
