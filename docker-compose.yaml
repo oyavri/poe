@@ -22,9 +22,10 @@ services:
     image: redis:8
     container_name: poe-redis
     restart: unless-stopped
+    hostname: bullmq
     environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+      REDIS_PASSWORD: ${BULLMQ_PASSWORD}
+    command: ["redis-server", "--requirepass", "${BULLMQ_PASSWORD}"]
     ports:
       - "${REDIS_PORT:-6379}:6379"
     healthcheck:
@@ -51,6 +52,10 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       DATABASE_POOL_SIZE: ${DATABASE_POOL_SIZE}
       JWT_SECRET: ${JWT_SECRET}
+      BULLMQ_HOST: ${BULLMQ_HOST}
+      BULLMQ_PORT: ${BULLMQ_PORT}
+      BULLMQ_PASSWORD: ${BULLMQ_PASSWORD}
+      BULLMQ_GLOBAL_CONCURRENCY: ${BULLMQ_GLOBAL_CONCURRENCY}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 30s
