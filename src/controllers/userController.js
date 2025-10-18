@@ -1,8 +1,10 @@
+import { userService } from "../services/userService";
+
 export const userController = {
     async register(req, res) {
         try {
             const { email, full_name, password } = req.body;
-            
+
             const user = await userService.registerUser({ email, full_name, password });
             
             return res.status(201).json(user);
@@ -10,4 +12,4 @@ export const userController = {
             return res.status(400).json({ error: err.message });
         }
     }
-}
+};
