@@ -79,7 +79,7 @@ export const callRepository = {
         
         const result = await client.query(query, [callId, userId]);
 
-        return result[0];
+        return result;
     },
 
     // locks the call for update, returns locked call's row with its id, owner and active status
@@ -97,13 +97,13 @@ export const callRepository = {
         return result;
     },
 
-    async getTranscription(callId) {
+    async getTranscription(client, callId) {
         const query = `
         SELECT id, status, transcription
         FROM transcriptions
         WHERE call_id = $1;`;
         
-        const result = await db.query(query, [callId]);
+        const result = await client.query(query, [callId]);
         
         return result;
     }

@@ -105,20 +105,21 @@ export const callService = {
 
             if (check.rowCount === 0) {
                 await client.query('ROLLBACK');
-                return { ok: false, status: 404, message: 'Call not found.' };
+                return { ok: false, status: 404, message: 'Call is not found.' };
             }
 
             const call = check.rows[0];
+            if (!call.active) {
+                await client.query('ROLLBACK');
+                return { ok: false, status: 404, message: 'Call is not found.' };
+            }
+
             if (call.created_by !== userId) {
                 await client.query('ROLLBACK');
                 return { ok: false, status: 403, message: 'Unauthorized!' };
             }
 
-            if (!call.active) {
-                await client.query('ROLLBACK');
-                return { ok: false, status: 400, message: 'Call is already deleted.' };
-            }
-
+            return { ok: false, status: 500, message: 'Internal server error.' };
         } catch (err) {
             await client.query('ROLLBACK');
             logger.error('Error deleting call: ', err);
@@ -129,6 +130,40 @@ export const callService = {
     },
 
     async getTranscription(callId, userId) {
+        const client = await db.connect();
+        try {
+            await client.query('BEGIN');
 
+            // Lock the call to check if the user is authorized or not
+            const callResult = await callRepository.getCallByIdForShare(client, callId);
+            if (callResult.rowCount === 0) {
+                await client.query('ROLLBACK');
+                return { ok: false, status: 404, message: 'Call is not found.'};
+            }
+
+            const call = callResult.rows[0];
+            if (!call.active) {
+                await client.query('ROLLBACK');
+                return { ok: false, status: 404, message: 'Call is not found' };
+            }
+
+            if (call.created_by !== userId) {
+                await client.query('ROLLBACK');
+                return { ok: false, status: 403, }
+            }
+
+            const transcriptionResult = await callRepository.getTranscription(client, callId);
+            const transcription = transcriptionResult.rows[0];
+
+            await client.query('COMMIT');
+
+            return { ok: true, status: 200, data: transcription };
+        } catch (err) {
+            await client.query('ROLLBACK');
+            logger.error('Error getting call transcription: ', err);
+            return { ok: false, status: 500, message: 'Internal server error.' };
+        } finally {
+            client.release();
+        }
     }
 };
