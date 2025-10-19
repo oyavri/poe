@@ -4,12 +4,8 @@ import { logger } from "./logger.js";
 
 export const db = new Pool({
     connectionString: dbConfig.databaseUrl,
-    max: parseInt(dbConfig.databasePoolSize, 30),
+    max: parseInt(dbConfig.databasePoolSize) || 30,
 })
-
-db.on('connect', () => {
-    logger.info('Database connection has been established!');
-});
 
 db.on('error', (err) => {
     logger.error(`Unexpected error on database connection: ${err}`);
