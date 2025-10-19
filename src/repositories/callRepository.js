@@ -3,7 +3,7 @@ import { db } from "../db.js";
 export const callRepository = {
     async createCall(client, { title, duration, created_by }) {
             // Create call entity in calls table
-            const result = db.query(`
+            const result = client.query(`
                 INSERT INTO calls (title, duration, created_by, active)
                 VALUES ($1, $2, $3, $4)
                 RETURNING id, title, duration;`,
