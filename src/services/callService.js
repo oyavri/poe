@@ -147,12 +147,12 @@ export const callService = {
             const call = callResult.rows[0];
             if (!call.active) {
                 await client.query('ROLLBACK');
-                return { ok: false, status: 404, message: 'Call is not found' };
+                return { ok: false, status: 404, message: 'Call is not found.' };
             }
 
             if (call.created_by !== userId) {
                 await client.query('ROLLBACK');
-                return { ok: false, status: 403, }
+                return { ok: false, status: 403, message: 'Unauthorized.'}
             }
 
             const transcriptionResult = await callRepository.getTranscription(client, callId);
