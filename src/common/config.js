@@ -18,12 +18,23 @@ export const config = {
     jwtSecret: getEnvVariable('JWT_SECRET'),
 
     // BullMQ config
-    bullMqHost: getEnvVariable('BULLMQ_HOST'),
-    bullMqPort: getEnvVariable('BULLMQ_PORT'),
-    bullMqPassword: getEnvVariable('BULLMQ_PASSWORD'),
+    bullMqConfig: {
+        connection: {
+            host: getEnvVariable('BULLMQ_HOST'),
+            port: getEnvVariable('BULLMQ_PORT'),
+            password: getEnvVariable('BULLMQ_PASSWORD'),
+        },
+        defaultJobOptions: {
+            attempts: parseInt(getEnvVariable('TRANSCRIPTION_MAX_RETRY_COUNT')) || 5,
+            removeOnComplete: 1000,
+            backoff: {
+                type: 'exponential',
+                delay: 1000,
+            },
+        },
+    },
     bullMqGlobalConcurrency: getEnvVariable('BULLMQ_GLOBAL_CONCURRENCY'),
 
     // Transcription config
-    transcriptionMaxRetryCount: parseInt(getEnvVariable('TRANSCRIPTION_MAX_RETRY_COUNT')),
     transcriptionQueue: "generateTranscription",
 }
