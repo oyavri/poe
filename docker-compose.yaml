@@ -61,3 +61,23 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+
+  poe-transcription-workers:
+    container_name: poe-transcription-workers
+    build: 
+      context: .
+      dockerfile: Dockerfile.worker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      poe-call-management:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      DATABASE_POOL_SIZE: ${DATABASE_POOL_SIZE}
+      BULLMQ_HOST: ${BULLMQ_HOST}
+      BULLMQ_PORT: ${BULLMQ_PORT}
+      BULLMQ_PASSWORD: ${BULLMQ_PASSWORD}
+      BULLMQ_GLOBAL_CONCURRENCY: ${BULLMQ_GLOBAL_CONCURRENCY}
