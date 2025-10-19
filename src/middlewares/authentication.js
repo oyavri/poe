@@ -1,7 +1,8 @@
 import jwt from 'jsonwebtoken';
+import { apiConfig } from '../common/apiConfig.js';
 
 export const authenticate = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
+    const authHeader = req.headers.Authorization;
     const token = authHeader && authHeader.split(' ')[1];
 
     if (!token) {
@@ -9,7 +10,7 @@ export const authenticate = (req, res, next) => {
     }
 
     try {
-        const payload = jwt.verify(token, config.jwtSecret);
+        const payload = jwt.verify(token, apiConfig.jwtSecret);
         req.user = payload;
         next();
     } catch (err) {
