@@ -5,22 +5,33 @@ export const userController = {
         try {
             const { email, full_name, password } = req.body;
 
-            const user = await userService.registerUser({ email, full_name, password });
+            const result = await userService.registerUser({ email, full_name, password });
             
-            return res.status(201).json(user);
+            if (!result.ok) {
+                return res.status(result.status).json({ error: result.message });
+            }
+
+            return res.status(result.status).json({ user: result.data });
         } catch (err) {
-            return res.status(400).json({ error: err.message });
+            return res.status(500).json({ error: err.message });
         }
     },
+    
     async login(req, res) {
         try {
             const { email, password } = req.body;
-            const data = await userService.loginUser({ email, password });
-            res.json(data);
+            const result = await userService.loginUser({ email, password });
+
+            if (!result.ok) {
+                return res.status(result.status).json({ error: result.message });
+            }
+
+            return res.status(result.status).json({ token: result.data.token, user: result.data.user });
         } catch (err) {
-            res.status(400).json({ error: err.message });
+            res.status(500).json({ error: err.message });
         }
     },
+
     getMe(req, res) {
         return res.status(200).json({ user: req.user });    
     }

@@ -8,18 +8,16 @@ export const userRepository = {
             RETURNING id, email, full_name;
         `;
 
-        const values = [email, full_name, password_hash];
-
-        const result = await db.query(query, values);
-        return result.rows[0];
+        const result = await db.query(query, [email, full_name, password_hash]);
+        
+        return result;
     },
     async findUserByEmail(email) {
         const query = `
             SELECT * FROM users WHERE email = $1;
         `
-        const values = [email];
+        const result = await db.query(query, [email]);
 
-        const result = await db.query(query, values);
-        return result.rows[0];
+        return result;
     }
 };

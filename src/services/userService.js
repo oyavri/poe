@@ -13,19 +13,23 @@ export const userService = {
         const salt = await bcrypt.genSalt(10);
         const password_hash = await bcrypt.hash(password, salt);
 
-        const user = await userRepository.createUser({ email, full_name, password_hash });
+        const userResult = await userRepository.createUser({ email, full_name, password_hash });
 
-        return user;
+        if (userResult.rowCount === 1) {
+            return { ok: true, status: 201, data: userResult.rows[0] };
+        }
+
+        return { ok: false, status: 500, message: 'Internal server error.' };
     },
     async loginUser({ email, password }) {
         const user = await userRepository.findUserByEmail(email);
         if (!user) {
-            throw new Error('Invalid email or password!');
+            return { ok: false, status: 400, message: 'Invalid email or password.' };
         }
 
-        const validPassword = await bcrypt.compare(password, password_hash);
+        const validPassword = await bcrypt.compare(password, user.password_hash);
         if (!validPassword) {
-            throw new Error('Invalid email or password!');
+            return { ok: false, status: 400, message: 'Invalid email or password.' };
         }
 
         const token = jwt.sign(
@@ -34,7 +38,9 @@ export const userService = {
             { expiresIn: '24h'}
         );
 
-        return { 
+        return {
+            ok: true,
+            status: 200,
             token, 
             user: { 
                 id: user.id,
