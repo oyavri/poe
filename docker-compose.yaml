@@ -27,9 +27,9 @@ services:
       REDIS_PASSWORD: ${BULLMQ_PASSWORD}
     command: ["redis-server", "--requirepass", "${BULLMQ_PASSWORD}"]
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      - "${BULLMQ_PORT:-6379}:6379"
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${BULLMQ_PASSWORD}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 3
