@@ -2,6 +2,7 @@ import { db } from "../common/db.js";
 import { logger } from "../common/logger.js";
 import { callRepository } from "../repositories/callRepository.js";
 import { transcriptionQueue } from "../common/transcriptionQueue.js";
+import { clientCommandMessageReg } from "bullmq";
 
 export const callService = {
     async createCall({ title, duration, participants, userId }) {
@@ -12,6 +13,8 @@ export const callService = {
             // First create call in the DB
             call = await callRepository.createCall(client, { title, duration, created_by: userId});
             await callRepository.addParticipantsToCallById(client, call.id, participants);
+
+            await callRepository.createTranscriptionRequest(client, call.id);
 
             await client.query('COMMIT');
         } catch (err) {

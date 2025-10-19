@@ -99,12 +99,23 @@ export const callRepository = {
 
     async getTranscription(client, callId) {
         const query = `
-        SELECT id, status, transcription
-        FROM transcriptions
-        WHERE call_id = $1;`;
+            SELECT id, status, transcription
+            FROM transcriptions
+            WHERE call_id = $1;`;
         
         const result = await client.query(query, [callId]);
         
+        return result;
+    },
+
+    async createTranscriptionRequest(client, callId) {
+        const query = `
+            INSERT INTO transcriptions (call_id)
+            VALUES ($1)
+            RETURNING id, call_id, status;`;
+        
+        const result = await client.query(query, [callId]);
+
         return result;
     }
 };
