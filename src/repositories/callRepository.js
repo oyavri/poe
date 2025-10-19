@@ -83,22 +83,28 @@ export const callRepository = {
     },
 
     // locks the call for update, returns locked call's row with its id, owner and active status
-    async findCallByIdForUpdate(client, callId) {
-        const result = await client.query(
-            `SELECT id, created_by, active FROM calls WHERE id = $1 FOR UPDATE;`,
-            [callId]
-        );
+    async getCallByIdForUpdate(client, callId) {
+        const query = `SELECT id, created_by, active FROM calls WHERE id = $1 FOR UPDATE;`;
+        const result = await client.query(query, [callId]);
 
         return result;
     },
 
-    async getCallTranscription(callId) {
+    async getCallByIdForShare(client, callId) { 
+        const query = `SELECT id, created_by, active FROM calls WHERE id = $1 FOR SHARE;`;
+        const result = await client.query(query, [callId]);
+
+        return result;
+    },
+
+    async getTranscription(callId) {
         const query = `
-            SELECT status, transcription FROM transcriptions
-            WHERE call_id = $1`;
+        SELECT id, status, transcription
+        FROM transcriptions
+        WHERE call_id = $1;`;
         
-        const { rows } = await db.query(query, [callId]);
+        const result = await db.query(query, [callId]);
         
-        return rows[0];
+        return result;
     }
 };

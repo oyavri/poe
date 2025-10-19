@@ -101,7 +101,7 @@ export const callService = {
                 return { ok: true, status: 200, message: 'Call deleted successfully.' };
             }
 
-            const check = await callRepository.findCallByIdForUpdate(client, callId);
+            const check = await callRepository.getCallByIdForUpdate(client, callId);
 
             if (check.rowCount === 0) {
                 await client.query('ROLLBACK');
