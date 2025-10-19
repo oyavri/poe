@@ -38,7 +38,7 @@ services:
     container_name: poe-call-management
     build: 
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.api
     ports:
       - "${CALL_MANAGEMENT_PORT:-3000}:3000"
     depends_on:

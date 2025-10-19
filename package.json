@@ -11,6 +11,6 @@
     "zod": "^4.1.12"
   },
   "scripts": {
-    "start": "node src/app.js"
+    "start-server": "node src/server/app.js",
   }
 }
