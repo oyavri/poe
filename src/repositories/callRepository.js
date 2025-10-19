@@ -41,25 +41,9 @@ export const callRepository = {
                 )
             ORDER BY created_at DESC`;
         
-        const { rows } = await db.query(query, [userId]);
-
-        const callsMap = new Map();
-
-        for (const row of rows) {
-            if (!callsMap.has(row.call_id)) {
-                callsMap.set(row.call_id, {
-                    title: row.title,
-                    duration: row.duration,
-                    created_at: row.created_at,
-                    created_by: row.created_by,
-                    participants: [],
-                });
-            }
-
-            callsMap.get(row.call_id).participants.push(row.participant_id);
-        }
-
-        return Array.from(callsMap.values);
+        const result = await db.query(query, [userId]);
+        
+        return result;
     },
 
     // returns call { title, duration, created_at, created_by, participants[] }
@@ -70,23 +54,11 @@ export const callRepository = {
             JOIN participants p ON p.call_id = c.id
             WHERE c.active = TRUE 
                 AND c.id = $1
-                AND c.created_by = $2`; 
+                AND c.created_by = $2`;
 
-        const { rows } = await db.query(query, [callId, userId]);
+        const result = await db.query(query, [callId, userId]);
 
-        const call = {
-            title: rows[0].title,
-            duration: rows[0].duration,
-            created_at: rows[0].created_at,
-            created_by: rows[0].created_by,
-            participants: rows.map(r => r.participant_id),
-        };
-
-        for (const row of rows) {
-            call.participants.push(row[2]);
-        }
-
-        return call;
+        return result;
     },
 
     // returns soft deleted call's id, owner(created_by) 

@@ -6,27 +6,29 @@ import { transcriptionQueue } from "../transcriptionQueue.js";
 export const callService = {
     async createCall({ title, duration, participants, userId }) {
         const client = await db.connect();
+        // This is probably not a good idea to use.
+        let call; 
         try {
             // First create call in the DB
-            const call = await callRepository.createCall(client, { title, duration, created_by: userId});
-            const participants = await callRepository.addParticipantsToCallById(client, call.id, participants);
+            call = await callRepository.createCall(client, { title, duration, created_by: userId});
+            await callRepository.addParticipantsToCallById(client, call.id, participants);
 
             await client.query('COMMIT');
         } catch (err) {
             await client.query('ROLLBACK');
-            logger.error(err);
-            throw err;
+            logger.error("Error creating call", err);
+            return { status: 500, message: 'Internal server error.' };
         } finally {
             client.release();
         }
 
         // Then send it to the queue to be transcribed
-        const job = await transcriptionQueue.add(
+        await transcriptionQueue.add(
             `generateTranscription`,
             // example.org represents a CDN for the recording
-            { callId, media: `https://example.org/audio-${callId}` },
+            { callId: call.id, media: `https://example.org/audio-${call.id}` },
             // to avoid duplicate processing of transcription
-            { jobId: `transcription-${callId}` },
+            { jobId: `transcription-${call.id}` },
         );
 
         /*
@@ -36,21 +38,55 @@ export const callService = {
         a working project I wanted to implement it this way.
         */
 
-        // There probably is a way to return the call from createCall 
-        // but to make things easier, I will just put this. An optimization
-        // for this part can be done. Also, since it is not atomic, there
-        // may be a race condition.
-        const call = await callRepository.getCallById();
-
-        return call;
+        return { status: 200, call: { ...call } };
     },
 
     async getCallsByUserId(userId) {
+        const result = await callRepository.getCallsByUserId(userId);
 
+        if (result.rowCount === 0) {
+            return { status: 404, message: 'No calls found.' };
+        }
+
+        const callsMap = new Map();
+
+        for (const row of result.rows) {
+            if (!callsMap.has(row.call_id)) {
+                callsMap.set(row.call_id, {
+                    title: row.title,
+                    duration: row.duration,
+                    created_at: row.created_at,
+                    created_by: row.created_by,
+                    participants: [],
+                });
+            }
+
+            callsMap.get(row.call_id).participants.push(row.participant_id);
+        }
+
+        return { status: 200, calls: Array.from(callsMap.values) };
     },
 
     async getCall(callId, userId) {
+        const result = await callRepository.getCallById(callId, userId);
 
+        if (result.rowCount === 0) {
+            return { status: 404, message: 'Call is not found.' };
+        }
+
+        const call = {
+            title: rows[0].title,
+            duration: rows[0].duration,
+            created_at: rows[0].created_at,
+            created_by: rows[0].created_by,
+            participants: rows.map(r => r.participant_id),
+        };
+
+        for (const row of result.rows) {
+            call.participants.push(row[2]);
+        }
+
+        return { status: 200, call: { ...call } };
     },
 
     async deleteCall(callId, userId) {
