@@ -7,7 +7,7 @@ export const transcriptionQueue = (async () => {
         bullMqConfig.bullMqConfig,
     );
     
-    await queue.setGlobalConcurrency(config.bullMqGlobalConcurrency);
+    await queue.setGlobalConcurrency(bullMqConfig.bullMqGlobalConcurrency);
 
     return queue;
 })();

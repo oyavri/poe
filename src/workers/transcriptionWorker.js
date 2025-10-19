@@ -1,7 +1,7 @@
 import { Worker } from 'bullmq';
-import { logger } from '../common/logger';
-import { db } from '../common/db';
-import { bullMqConfig } from '../common/bullMqConfig';
+import { logger } from '../common/logger.js';
+import { db } from '../common/db.js';
+import { bullMqConfig } from '../common/bullMqConfig.js';
 
 const loremIpsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent mattis luctus ex, ac tristique metus congue vitae. Donec faucibus ex arcu, id pharetra purus rhoncus sed. Cras faucibus vitae lorem eu varius. Cras auctor tempus nisi a ullamcorper. Suspendisse aliquam, sapien hendrerit molestie lobortis, risus lectus aliquam tellus, et tempor mi metus sed erat. Proin eget libero odio. Donec interdum varius augue ac hendrerit. Vestibulum eget aliquet libero. Suspendisse bibendum placerat ex. Nunc vestibulum sapien id sapien tincidunt molestie. Aliquam in vulputate lacus, id dapibus neque. Morbi tempus, ligula quis interdum aliquet, libero eros pellentesque arcu, non facilisis justo risus non ligula. Suspendisse potenti. Donec ut imperdiet mi, eu posuere nulla. Nunc mi ipsum, posuere sed lectus eu, viverra bibendum lacus.";
 
@@ -81,3 +81,5 @@ worker.on('failed', (job, err) => {
         db.query(query, [callId]);
     }   
 });
+
+logger.info("Worker started running on the background...");

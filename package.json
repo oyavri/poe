@@ -12,6 +12,6 @@
   },
   "scripts": {
     "start-server": "node src/server/app.js",
-    "start-workers": "node src/workers/transcription_Worker.js"
+    "start-workers": "node src/workers/transcriptionWorker.js"
   }
 }

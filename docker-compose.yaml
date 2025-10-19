@@ -58,9 +58,9 @@ services:
       BULLMQ_GLOBAL_CONCURRENCY: ${BULLMQ_GLOBAL_CONCURRENCY}
       TRANSCRIPTION_MAX_RETRY_COUNT: ${TRANSCRIPTION_MAX_RETRY_COUNT}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "${CALL_MANAGEMENT_HOSTNAME}:${CALL_MANAGEMENT_PORT}/health"]
+      interval: 10s
+      timeout: 5s
       retries: 5
 
   poe-transcription-workers:

@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const callSchema = z.object({
     title: z.string().min(1),
     duration: z.number().int().nonnegative(),
-    participants: z.array(z.string.uuid().nonempty()),
+    participants: z.array(z.uuid().nonempty()),
 });
 
 export const validateCall = (req, res, next) => {
