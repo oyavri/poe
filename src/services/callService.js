@@ -17,7 +17,7 @@ export const callService = {
         } catch (err) {
             await client.query('ROLLBACK');
             logger.error("Error creating call", err);
-            return { status: 500, message: 'Internal server error.' };
+            return { ok: false, status: 500, message: 'Internal server error.' };
         } finally {
             client.release();
         }
@@ -38,14 +38,14 @@ export const callService = {
         a working project I wanted to implement it this way.
         */
 
-        return { status: 200, call: { ...call } };
+        return { ok: true, status: 200, data: { ...call } };
     },
 
     async getCallsByUserId(userId) {
         const result = await callRepository.getCallsByUserId(userId);
 
         if (result.rowCount === 0) {
-            return { status: 404, message: 'No calls found.' };
+            return { ok: false, status: 404, message: 'No calls found.' };
         }
 
         const callsMap = new Map();
@@ -64,14 +64,14 @@ export const callService = {
             callsMap.get(row.call_id).participants.push(row.participant_id);
         }
 
-        return { status: 200, calls: Array.from(callsMap.values) };
+        return { ok: true, status: 200, data: Array.from(callsMap.values) };
     },
 
     async getCall(callId, userId) {
         const result = await callRepository.getCallById(callId, userId);
 
         if (result.rowCount === 0) {
-            return { status: 404, message: 'Call is not found.' };
+            return { ok: false, status: 404, message: 'Call is not found.' };
         }
 
         const call = {
@@ -86,7 +86,7 @@ export const callService = {
             call.participants.push(row[2]);
         }
 
-        return { status: 200, call: { ...call } };
+        return { ok: true, status: 200, data: { ...call } };
     },
 
     async deleteCall(callId, userId) {
@@ -98,31 +98,31 @@ export const callService = {
 
             if (result.rowCount === 1) {
                 await client.query('COMMIT');
-                return { status: 200, message: 'Call deleted successfully.' };
+                return { ok: true, status: 200, message: 'Call deleted successfully.' };
             }
 
             const check = await callRepository.findCallByIdForUpdate(client, callId);
 
             if (check.rowCount === 0) {
                 await client.query('ROLLBACK');
-                return { status: 404, message: 'Call not found.' };
+                return { ok: false, status: 404, message: 'Call not found.' };
             }
 
             const call = check.rows[0];
             if (call.created_by !== userId) {
                 await client.query('ROLLBACK');
-                return { status: 403, message: 'Unauthorized!' };
+                return { ok: false, status: 403, message: 'Unauthorized!' };
             }
 
             if (!call.active) {
                 await client.query('ROLLBACK');
-                return { status: 400, message: 'Call is already deleted.' };
+                return { ok: false, status: 400, message: 'Call is already deleted.' };
             }
 
         } catch (err) {
             await client.query('ROLLBACK');
             logger.error('Error deleting call: ', err);
-            return { status: 500, message: 'Internal server error.' };
+            return { ok: false, status: 500, message: 'Internal server error.' };
         } finally {
             client.release();
         }
