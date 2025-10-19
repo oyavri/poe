@@ -1,16 +1,17 @@
 import { db } from "../db.js";
 
 export const callRepository = {
+    // returns call without participants => { id, title, duration, created_by }
     async createCall(client, { title, duration, created_by }) {
             // Create call entity in calls table
             const result = client.query(`
                 INSERT INTO calls (title, duration, created_by, active)
                 VALUES ($1, $2, $3, $4)
-                RETURNING id, title, duration;`,
+                RETURNING id, title, duration, created_by;`,
                 [title, duration, created_by, true]
             );
             
-            return result;
+            return result[0];
     },
 
     async addParticipantsToCallById(client, callId, participants) {
@@ -26,9 +27,10 @@ export const callRepository = {
             );
     },
 
+    // returns an array of calls => [{ id, title, duration, created_at, participants[] }, { ...call }, ...]
     async getCallsByUserId(userId) {
         const query = `
-            SELECT c.id AS call_id, c.title, c.duration, c.created_at, p.user_id AS participant_id
+            SELECT c.id AS call_id, c.title, c.duration, c.created_at, c.created_by, p.user_id AS participant_id
             FROM calls c
             JOIN participants p ON p.call_id = c.id
             WHERE c.active = TRUE 
@@ -49,6 +51,7 @@ export const callRepository = {
                     title: row.title,
                     duration: row.duration,
                     created_at: row.created_at,
+                    created_by: row.created_by,
                     participants: [],
                 });
             }
@@ -59,6 +62,7 @@ export const callRepository = {
         return Array.from(callsMap.values);
     },
 
+    // returns call { title, duration, created_at, created_by, participants[] }
     async getCallById(callId, userId) {
         const query = `
             SELECT c.title, c.duration, c.created_by, c.created_at, p.user_id AS participant_id
@@ -85,6 +89,7 @@ export const callRepository = {
         return call;
     },
 
+    // returns soft deleted call's id, owner(created_by) 
     async softDeleteCall(client, callId, userId) {
         const query = `
             WITH target AS (
@@ -98,13 +103,14 @@ export const callRepository = {
             WHERE c.id = target.id
                 AND target.created_by = $2
                 AND target.active = true
-            RETURNING target.created_by, c.id, c.active;`;
+            RETURNING target.created_by, c.id;`;
         
         const result = await client.query(query, [callId, userId]);
 
-        return result;
+        return result[0];
     },
 
+    // locks the call for update, returns locked call's row with its id, owner and active status
     async findCallByIdForUpdate(client, callId) {
         const result = await client.query(
             `SELECT id, created_by, active FROM calls WHERE id = $1 FOR UPDATE;`,
