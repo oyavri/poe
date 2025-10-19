@@ -25,7 +25,12 @@ services:
     hostname: bullmq
     environment:
       REDIS_PASSWORD: ${BULLMQ_PASSWORD}
-    command: ["redis-server", "--requirepass", "${BULLMQ_PASSWORD}"]
+    command: [
+      "redis-server", 
+      "--requirepass", "${BULLMQ_PASSWORD}",
+      "--appendonly", "yes",
+      "--appendfsync", "everysec"
+      ]
     ports:
       - "${BULLMQ_PORT:-6379}:6379"
     healthcheck:
