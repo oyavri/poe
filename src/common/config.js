@@ -25,4 +25,5 @@ export const config = {
 
     // Transcription config
     transcriptionMaxRetryCount: parseInt(getEnvVariable('TRANSCRIPTION_MAX_RETRY_COUNT')),
+    transcriptionQueue: "generateTranscription",
 }
