@@ -1,23 +1,21 @@
 import { db } from "../db.js";
-import { logger } from "../logger.js";
-import { transcriptionQueue } from "../messageQueue.js";
 
 export const callRepository = {
-    async createCall({ title, duration, created_by, participants }) {
-        const client = await db.connect();
-        try {
-            await client.query('BEGIN');
+    async createCall(client, { title, duration, created_by }) {
             // Create call entity in calls table
-            const callResult = db.query(`
+            const result = db.query(`
                 INSERT INTO calls (title, duration, created_by, active)
                 VALUES ($1, $2, $3, $4)
                 RETURNING id, title, duration;`,
                 [title, duration, created_by, true]
             );
-            // Add participants in participants table
-            const callId = callResult.rows[0].id;
             
-            await Promise.all(
+            return result;
+    },
+
+    async addParticipantsToCallById(client, callId, participants) {
+            // Add participants to the participants table
+            return Promise.all(
                 participants.map((participantId) => {
                     client.query(`
                         INSERT INTO participants (call_id, user_id)
@@ -26,22 +24,6 @@ export const callRepository = {
                     )
                 })
             );
-            await client.query('COMMIT'); 
-
-            await transcriptionQueue.add(
-                `generateTranscription`,
-                // example.org represents a CDN for the recording
-                { callId, media: "https://example.org" },
-                // to avoid duplicate processing of transcription
-                { jobId: `transcription-${callId}` },
-            );
-        } catch (err) {
-            await client.query('ROLLBACK');
-            logger.error(err);
-            throw err;
-        } finally {
-            client.release();
-        }
     },
 
     async getCallsByUserId(userId) {
@@ -77,19 +59,22 @@ export const callRepository = {
         return Array.from(callsMap.values);
     },
 
-    async getCallById(callId) {
+    async getCallById(callId, userId) {
         const query = `
-            SELECT c.title, c.duration, c.created_at, p.user_id AS participant_id
+            SELECT c.title, c.duration, c.created_by, c.created_at, p.user_id AS participant_id
             FROM calls c
             JOIN participants p ON p.call_id = c.id
-            WHERE c.active = TRUE AND c.id = $1`; 
+            WHERE c.active = TRUE 
+                AND c.id = $1
+                AND c.created_by = $2`; 
 
-        const { rows } = await db.query(query, [callId]);
+        const { rows } = await db.query(query, [callId, userId]);
 
         const call = {
             title: rows[0].title,
             duration: rows[0].duration,
             created_at: rows[0].created_at,
+            created_by: rows[0].created_by,
             participants: rows.map(r => r.participant_id),
         };
 
@@ -100,15 +85,33 @@ export const callRepository = {
         return call;
     },
 
-    async deleteCall(callId) {
+    async softDeleteCall(client, callId, userId) {
         const query = `
+            WITH target AS (
+                SELECT id, created_by, active
+                FROM calls c
+                WHERE id = $1
+                FOR UPDATE
+            )
             UPDATE calls c 
             SET active = false
-            WHERE c.id = $1;`;
+            WHERE c.id = target.id
+                AND target.created_by = $2
+                AND target.active = true
+            RETURNING target.created_by, c.id, c.active;`;
         
-        await db.query(query, [callId]);
+        const result = await client.query(query, [callId, userId]);
 
-        return true;
+        return result;
+    },
+
+    async findCallByIdForUpdate(client, callId) {
+        const result = await client.query(
+            `SELECT id, created_by, active FROM calls WHERE id = $1 FOR UPDATE;`,
+            [callId]
+        );
+
+        return result;
     },
 
     async getCallTranscription(callId) {
