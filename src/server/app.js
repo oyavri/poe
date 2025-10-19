@@ -1,12 +1,12 @@
 import express from 'express';
-import { config } from './common/config.js';
-import { logger } from './common/logger.js';
+import { config } from '../common/config.js';
+import { logger } from '../common/logger.js';
 
-import { validateLogin, validateRegister } from './validators/userValidator.js';
-import { userController } from './controllers/userController.js';
-import { authenticate } from './middlewares/authentication.js';
-import { validateCall } from './validators/callValidator.js';
-import { callController } from './controllers/callController.js';
+import { validateLogin, validateRegister } from '../validators/userValidator.js';
+import { userController } from '../controllers/userController.js';
+import { authenticate } from '../middlewares/authentication.js';
+import { validateCall } from '../validators/callValidator.js';
+import { callController } from '../controllers/callController.js';
 
 const app = express();
 app.use(express.json());
