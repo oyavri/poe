@@ -47,6 +47,8 @@ There are several problems unsolved that I realized before the implementation an
 - Linter can be set up so that the code repository can be consistent (hopefully).
 - TypeScript would be a huge improvement for developer experience... (I've suffered a lot from the runtime errors).
 - Move domains to routers instead of stacking them in the program entry point (./src/server/app.js)
+- Graceful shutdown for workers.
+- Better logging, can be considered as analytics but still worth a mention.
 
 ## Case requirements:
 
@@ -71,57 +73,81 @@ There are several problems unsolved that I realized before the implementation an
 
 ### Endpoints:
 
-  ```json
+#### POST /auth/register
+Request:
+```http 
 POST /auth/register
-    // Request:
-    {
-        "email": "john.doe@example.org",
-        "full_name": "John Doe",
-        "password": "p4ssw0rd"
-    }
-    // Response:
-    {
-        "id": "d75d0e54-9292-42cc-800b-c2578f8a5bb4",
-        "email": "john.doe@example.org",
-        "full_name": "John Doe",
-        "created_at": 
-    }
-  ```
-  ```json
-  POST /auth/login
-    // Request:
-    {
-        "email": "john.doe@example.org",
-        "password": "p4ssw0rd"
-    }
-    // Response:
-    {
-        "token": ""
-        "user": {
-            "id": "d75d0e54-9292-42cc-800b-c2578f8a5bb4",
-            "email": "john.doe@example.org",
-            "full_name": "John Doe",
-            "created_at": 
-        }
-    }
-  ```
+Content-Type: application/json
 
-  ```json
+{
+  "email": "john.doe@example.org",
+  "full_name": "John Doe",
+  "password": "p4ssw0rd"
+}
+```
+Response:
+```http
+HTTP 201 Created
+Content-Type: application/json;
+
+{
+  "id": "d75d0e54-9292-42cc-800b-c2578f8a5bb4",
+  "email": "john.doe@example.org",
+  "full_name": "John Doe",
+  "created_at": 
+}
+```
+---
+#### POST /auth/login
+```http 
+POST /auth/login
+Content-Type: application/json
+```
+```json
+  // Request:
+  {
+      "email": "john.doe@example.org",
+      "password": "p4ssw0rd"
+  }
+  // Response:
+  {
+      "token": ""
+      "user": {
+          "id": "d75d0e54-9292-42cc-800b-c2578f8a5bb4",
+          "email": "john.doe@example.org",
+          "full_name": "John Doe",
+          "created_at": 
+      }
+  }
+```
+---
+#### GET /auth/me
+```http 
 GET /auth/me
-/* Requires the token given by the login endpoint to 
-be stored in Authorization header of the request. */
-    // Response:
-    {
-        "user": {
-            "userId": "83d717c6-e774-4be1-8883-e2709d6c62c2",
-            "email": "thomas.anderson@matrix.com",
-            "iat": 1760904343,
-            "exp": 1760990743
-        }
-    }
-  ```
-- POST /calls -> Create a new call
+Authorization: Bearer <your_jwt_token>
+```
+```json
+  // Response:
+  {
+      "user": {
+          "userId": "83d717c6-e774-4be1-8883-e2709d6c62c2",
+          "email": "thomas.anderson@matrix.com",
+          "iat": 1760904343,
+          "exp": 1760990743
+      }
+  }
+```
+---
+### POST /calls - Create new call
+```http 
+POST /calls
+Authorization: Bearer <your_jwt_token>
+```
+---
 - GET /calls -> List calls
+---
 - GET /calls/:id -> Get details
+---
 - DELETE /calls/:id -> Delete
+---
 - GET /calls/:id/transcription -> Get transcription status/result
