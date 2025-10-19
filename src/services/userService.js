@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken'
 import { userRepository } from '../repositories/userRepository.js';
-import { config } from '../config.js';
+import { config } from '../common/config.js';
 
 export const userService = {
     async registerUser({ email, full_name, password }) {

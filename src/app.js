@@ -1,6 +1,6 @@
 import express from 'express';
-import { config } from './config.js';
-import { logger } from './logger.js';
+import { config } from './common/config.js';
+import { logger } from './common/logger.js';
 
 import { validateLogin, validateRegister } from './validators/userValidator.js';
 import { userController } from './controllers/userController.js';

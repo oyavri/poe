@@ -1,4 +1,4 @@
-import { db } from "../db.js";
+import { db } from "../common/db.js";
 
 export const callRepository = {
     // returns call without participants => { id, title, duration, created_by }

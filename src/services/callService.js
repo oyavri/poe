@@ -1,7 +1,7 @@
-import { db } from "../db.js";
-import { logger } from "../logger.js";
+import { db } from "../common/db.js";
+import { logger } from "../common/logger.js";
 import { callRepository } from "../repositories/callRepository.js";
-import { transcriptionQueue } from "../transcriptionQueue.js";
+import { transcriptionQueue } from "../common/transcriptionQueue.js";
 
 export const callService = {
     async createCall({ title, duration, participants, userId }) {
