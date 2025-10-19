@@ -34,8 +34,9 @@ CREATE TABLE IF NOT EXISTS participants (
 CREATE TABLE IF NOT EXISTS transcriptions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     call_id UUID NOT NULL,
-    status transcription_status NOT NULL,
+    status transcription_status NOT NULL DEFAULT 'pending',
     transcription TEXT,
-    initiated_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    initiated_at TIMESTAMP,
     CONSTRAINT fk_transcriptions_calls FOREIGN KEY (call_id) REFERENCES calls(id)
 );
