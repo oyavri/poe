@@ -1,10 +1,10 @@
 import { Queue } from "bullmq";
-import { config } from "./config.js";
+import { bullMqConfig } from "./bullMqConfig.js";
 
 export const transcriptionQueue = (async () => {
     const queue = new Queue(
         "transcription", 
-        config.bullMqConfig,
+        bullMqConfig.bullMqConfig,
     );
     
     await queue.setGlobalConcurrency(config.bullMqGlobalConcurrency);

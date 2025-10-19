@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken'
 import { userRepository } from '../repositories/userRepository.js';
-import { config } from '../common/config.js';
+import { apiConfig } from '../common/apiConfig.js';
 
 export const userService = {
     async registerUser({ email, full_name, password }) {
@@ -30,7 +30,7 @@ export const userService = {
 
         const token = jwt.sign(
             { userId: user.id, email: user.email },
-            config.jwtSecret,
+            apiConfig.jwtSecret,
             { expiresIn: '24h'}
         );
 

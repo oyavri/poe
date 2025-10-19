@@ -1,10 +1,10 @@
 import { Pool } from "pg";
-import { config } from "./config.js";
+import { dbConfig } from "./dbConfig.js";
 import { logger } from "./logger.js";
 
 export const db = new Pool({
-    connectionString: config.databaseUrl,
-    max: parseInt(config.databasePoolSize, 30),
+    connectionString: dbConfig.databaseUrl,
+    max: parseInt(dbConfig.databasePoolSize, 30),
 })
 
 db.on('connect', () => {

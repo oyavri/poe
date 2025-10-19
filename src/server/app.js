@@ -1,5 +1,5 @@
 import express from 'express';
-import { config } from '../common/config.js';
+import { apiConfig } from '../common/apiConfig.js';
 import { logger } from '../common/logger.js';
 
 import { validateLogin, validateRegister } from '../validators/userValidator.js';
@@ -24,6 +24,6 @@ app.get('/health', async (req, res) => {
     res.status(200).send('OK');
 })
 
-app.listen(config.port, () => {
-    logger.info(`Example app listening on ${config.hostname}:${config.port}`);
+app.listen(apiConfig.port, () => {
+    logger.info(`Example app listening on ${apiConfig.hostname}:${apiConfig.port}`);
 });

@@ -7,16 +7,7 @@ function getEnvVariable(name) {
     return val;
 }
 
-export const config = {
-    // Database config
-    databaseUrl: getEnvVariable('DATABASE_URL'),
-    databasePoolSize: getEnvVariable('DATABASE_POOL_SIZE'),
-    
-    // Service config
-    hostname: getEnvVariable('CALL_MANAGEMENT_HOSTNAME'),
-    port: getEnvVariable('CALL_MANAGEMENT_PORT'),
-    jwtSecret: getEnvVariable('JWT_SECRET'),
-
+export const bullMqConfig = {
     // BullMQ config
     bullMqConfig: {
         connection: {
@@ -37,4 +28,4 @@ export const config = {
 
     // Transcription config
     transcriptionQueue: "generateTranscription",
-}
+};

@@ -2,7 +2,7 @@ import { db } from "../common/db.js";
 import { logger } from "../common/logger.js";
 import { callRepository } from "../repositories/callRepository.js";
 import { transcriptionQueue } from "../common/transcriptionQueue.js";
-import { config } from "winston";
+import { bullMqConfig } from "../common/bullMqConfig.js";
 
 export const callService = {
     async createCall({ title, duration, participants, userId }) {
@@ -27,7 +27,7 @@ export const callService = {
 
         // Then send it to the queue to be transcribed
         await transcriptionQueue.add(
-            config.transcriptionQueue,
+            bullMqConfig.transcriptionQueue,
             // example.org represents a CDN for the recording
             { callId: call.id, media: `https://example.org/audio-${call.id}` },
             // to avoid duplicate processing of transcription
