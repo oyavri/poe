@@ -1,4 +1,4 @@
-import { Worker } from 'bullmq';
+import { Worker, Queue } from 'bullmq';
 import { logger } from '../common/logger.js';
 import { db } from '../common/db.js';
 import { bullMqConfig } from '../common/bullMqConfig.js';
@@ -12,7 +12,7 @@ function sleep(ms) {
 async function simulateProcess() {
     // t seconds for processing where 2 < t < 10 
     const intervalMilliseconds = Math.floor(Math.random() * 8 + 2) * 1000;
-    isGoingToFail = (Math.random() < 0.05);
+    const isGoingToFail = (Math.random() < 0.05);
 
     
     if (isGoingToFail) {        
@@ -31,25 +31,24 @@ async function simulateProcess() {
 
 const worker = new Worker(
     bullMqConfig.transcriptionQueue, 
-    async () => {
-        logger.info(`Processing job with id: ${job.id}, data: ${job.data}`);
-        const callId = job.data.callId
+    async (job) => { 
+        logger.info(`Processing job with id: ${job.id}, data: `, job.data);
+        const callId = job.data.callId;
 
-        const isCallActiveQuery = `
-            SELECT active FROM calls c
-            WHERE c.id = $1 AND active = true;
-        `;
-
-        const isCallActive = await db.query(isCallActiveQuery, [callId]);
-        
         // Transcription process should also have a updated_at field for retries.
         const setFailedQuery = `
-            UPDATE transcriptions
-            SET status = 'processing'
-            WHERE call_id = $1;`;
+            UPDATE transcriptions t
+            SET status = 'failed'
+            FROM calls c
+            WHERE t.call_id = $1
+                AND c.id = t.call_id
+                AND c.active = false
+            RETURNING t.id;`;
         
-        if (isCallActive.rowCount === 0) {
-            await db.query(setFailedQuery, [callId]); 
+        const isActiveCall = await db.query(setFailedQuery, [callId]);
+        if (isActiveCall.rowCount === 0) {
+            logger.error(`Call ${callId} is not active anymore.`);
+            return;
         }
 
         const setProcessingQuery = `
@@ -61,6 +60,7 @@ const worker = new Worker(
         await db.query(setProcessingQuery, [callId]); 
 
         try {
+            logger.info(`Transcription of call ${callId} is started.`);
             const transcription = await simulateProcess();
         
             const setCompletedQuery = `
@@ -69,8 +69,7 @@ const worker = new Worker(
                 WHERE call_id = $1;`;
         
             await db.query(setCompletedQuery, [callId, transcription]); 
-
-            logger.info(`Job ${job.id} completed successfully for call ${callId}`);
+            logger.info(`Transcription of ${callId} is completed.`);
         } catch (err) {
             logger.error(`Job ${job.id} failed:`, err.message);
             throw err;
@@ -78,7 +77,6 @@ const worker = new Worker(
     },
     bullMqConfig.bullMqConfig
 );
-
 
 worker.on('completed', (job) => {
     logger.info(`Job ${job.id} marked as completed.`);
@@ -96,7 +94,13 @@ worker.on('failed', (job, err) => {
         const callId = job.data.callId;
 
         db.query(query, [callId]);
+
+        logger.error(`Job ${job.id} failed after all attempts, transcription status updated as 'failed'.`);
     }   
 });
+
+worker.on('error', err => {
+    logger.error(`An error occurred: ${err}`);
+})
 
 logger.info("Worker started running on the background...");
