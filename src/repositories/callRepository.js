@@ -11,7 +11,7 @@ export const callRepository = {
                 [title, duration, created_by, true]
             );
             
-            return result[0];
+            return result;
     },
 
     async addParticipantsToCallById(client, callId, participants) {

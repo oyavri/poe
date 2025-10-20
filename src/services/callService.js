@@ -11,7 +11,8 @@ export const callService = {
         let call; 
         try {
             // First create call in the DB
-            call = await callRepository.createCall(client, { title, duration, created_by: userId});
+            const result = await callRepository.createCall(client, { title, duration, created_by: userId});
+            call = result.rows[0];
             await callRepository.addParticipantsToCallById(client, call.id, participants);
 
             await callRepository.createTranscriptionRequest(client, call.id);
