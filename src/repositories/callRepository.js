@@ -76,7 +76,7 @@ export const callRepository = {
             WHERE c.id = target.id
                 AND target.created_by = $2
                 AND target.active = true
-            RETURNING target.created_by, c.id;`;
+            RETURNING c.id, target.created_by;`;
         
         const result = await client.query(query, [callId, userId]);
 
