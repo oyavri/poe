@@ -80,10 +80,10 @@ export const callController = {
             }
 
             if (result.data.status === 'completed') {
-                return res.status(result.status).json({ id: result.data.id, status: result.data.status, transcription: result.data.transcription });
+                return res.status(result.status).json({ id: result.data.id, call_id: result.data.call_id, status: result.data.status, transcription: result.data.transcription });
             }
 
-            return res.status(result.status).json({ id: result.data.id, status: result.data.status });
+            return res.status(result.status).json({ id: result.data.id, call_id: result.data.call_id, status: result.data.status });
         } catch (err) {
             res.status(500).json({ error: err.message });
         }
