@@ -506,7 +506,7 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:3000/calls/:id",
+							"raw": "http://localhost:3000/calls/{{call_id}}",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -514,13 +514,7 @@
 							"port": "3000",
 							"path": [
 								"calls",
-								":id"
-							],
-							"variable": [
-								{
-									"key": "id",
-									"value": ""
-								}
+								"{{call_id}}"
 							]
 						}
 					},
