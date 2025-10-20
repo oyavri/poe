@@ -46,7 +46,7 @@ const worker = new Worker(
             RETURNING t.id;`;
         
         const isActiveCall = await db.query(setFailedQuery, [callId]);
-        if (isActiveCall.rowCount === 0) {
+        if (isActiveCall.rowCount === 1) {
             logger.error(`Call ${callId} is not active anymore.`);
             return;
         }
