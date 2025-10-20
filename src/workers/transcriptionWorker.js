@@ -104,3 +104,22 @@ worker.on('error', err => {
 })
 
 logger.info("Worker started running on the background...");
+
+const shutdown = async (signal) => {
+  logger.info(`Received ${signal}, shutting down worker gracefully...`);
+
+  try {
+    await worker.close();
+    logger.info('Worker closed.');
+
+    } catch (err) {
+        logger.error('Error during worker shutdown:', err);
+        process.exit(1);
+    }
+
+    logger.info('Worker shutdown complete.');
+    process.exit(0);
+};
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
