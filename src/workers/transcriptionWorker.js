@@ -35,6 +35,23 @@ const worker = new Worker(
         logger.info(`Processing job with id: ${job.id}, data: ${job.data}`);
         const callId = job.data.callId
 
+        const isCallActiveQuery = `
+            SELECT active FROM calls c
+            WHERE c.id = $1 AND active = true;
+        `;
+
+        const isCallActive = await db.query(isCallActiveQuery, [callId]);
+        
+        // Transcription process should also have a updated_at field for retries.
+        const setFailedQuery = `
+            UPDATE transcriptions
+            SET status = 'processing'
+            WHERE call_id = $1;`;
+        
+        if (isCallActive.rowCount === 0) {
+            await db.query(setFailedQuery, [callId]); 
+        }
+
         const setProcessingQuery = `
             UPDATE transcriptions
             SET status = 'processing', initiated_at = NOW()
