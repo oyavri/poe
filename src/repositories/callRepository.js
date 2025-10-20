@@ -100,7 +100,7 @@ export const callRepository = {
 
     async getTranscription(client, callId) {
         const query = `
-            SELECT id, status, transcription
+            SELECT id, call_id, status, transcription
             FROM transcriptions
             WHERE call_id = $1;`;
         
