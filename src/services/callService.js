@@ -57,6 +57,7 @@ export const callService = {
         for (const row of result.rows) {
             if (!callsMap.has(row.call_id)) {
                 callsMap.set(row.call_id, {
+                    id: row.call_id,
                     title: row.title,
                     duration: row.duration,
                     created_at: row.created_at,
@@ -64,11 +65,13 @@ export const callService = {
                     participants: [],
                 });
             }
-
+            
             callsMap.get(row.call_id).participants.push(row.participant_id);
         }
 
-        return { ok: true, status: 200, data: Array.from(callsMap.values) };
+        const calls = Array.from(callsMap.values());
+
+        return { ok: true, status: 200, data: calls };
     },
 
     async getCall(callId, userId) {
