@@ -49,7 +49,7 @@ export const callRepository = {
     // returns call with given callId of given userId 
     async getCallById(callId, userId) {
         const query = `
-            SELECT c.title, c.duration, c.created_by, c.created_at, p.user_id AS participant_id
+            SELECT c.id, c.title, c.duration, c.created_by, c.created_at, p.user_id AS participant_id
             FROM calls c
             JOIN participants p ON p.call_id = c.id
             WHERE c.active = TRUE 
