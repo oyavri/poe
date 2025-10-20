@@ -168,8 +168,7 @@
 								"exec": [
 									"if (pm.response.code === 200) {\r",
 									"    let jsonData = pm.response.json();\r",
-									"    if (jsonData.token) \r",
-									"        pm.environment.set(\"authToken\", jsonData.token);\r",
+									"    pm.collectionVariables.set(\"authToken\", jsonData.token);\r",
 									"}"
 								],
 								"type": "text/javascript",
@@ -385,8 +384,7 @@
 								"exec": [
 									"if (pm.response.code === 200) {\r",
 									"    let jsonData = pm.response.json();\r",
-									"    if (jsonData.call.id) \r",
-									"        pm.environment.set(\"call_id\", jsonData.call.id);\r",
+									"    pm.collectionVariables.set(\"call_id\", jsonData.id);\r",
 									"}"
 								],
 								"type": "text/javascript",
@@ -578,6 +576,10 @@
 			"key": "baseURL",
 			"value": "",
 			"type": "default"
+		},
+		{
+			"key": "authToken",
+			"value": ""
 		}
 	]
 }
