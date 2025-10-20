@@ -7,6 +7,7 @@ import { userController } from '../controllers/userController.js';
 import { authenticate } from '../middlewares/authentication.js';
 import { validateCall } from '../validators/callValidator.js';
 import { callController } from '../controllers/callController.js';
+import { transcriptionQueue } from '../common/transcriptionQueue.js';
 
 const app = express();
 app.use(express.json());
@@ -27,3 +28,33 @@ app.get('/health', async (req, res) => {
 app.listen(apiConfig.port, () => {
     logger.info(`Example app listening on ${apiConfig.hostname}:${apiConfig.port}`);
 });
+
+const shutdown = async (signal) => {
+  logger.info(`Received ${signal}, shutting down gracefully.`);
+
+  app.close(async (err) => {
+    if (err) {
+      logger.error('Error closing HTTP server: ', err);
+      process.exit(1);
+    }
+
+    try {
+        await transcriptionQueue.close();
+        logger.info('Queue connection closed.');
+
+        await db.end();
+        logger.info('Database pool closed.');
+    
+    } catch (error) {
+        logger.error('Error during shutdown: ', error);
+        process.exit(1);
+    }
+
+    logger.info('Server shutdown complete.');
+    process.exit(0);
+  });
+};
+
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
