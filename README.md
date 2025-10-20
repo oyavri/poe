@@ -52,6 +52,7 @@ There are several problems unsolved that I realized before the implementation an
 - TypeScript would be a huge improvement for developer experience... (I've suffered a lot from the runtime errors).
 - Moving domains to routers instead of stacking them in the program entry point (./src/server/app.js)
 - Better logging, can be considered as analytics but still worth a mention.
+- Worker does not need the API's files and vice versa. However, Dockerfiles of the services are not configured with that isolation. It would be better to have it like that.
 
 ## Case requirements:
 
