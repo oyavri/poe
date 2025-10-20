@@ -35,7 +35,7 @@ export const userService = {
         }
 
         const token = jwt.sign(
-            { userId: user.id, email: user.email },
+            { id: user.id, email: user.email },
             apiConfig.jwtSecret,
             { expiresIn: '24h' }
         );
