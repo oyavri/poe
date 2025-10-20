@@ -6,7 +6,7 @@ The name is inspired by the receptionist in the Raven Hotel in Altered Carbon. W
 
 ## How to run the project
 
-Project is fully dockerized, thus, if you have Docker and are able to run docker compose, following command will start the whole project:
+Project is fully dockerized, thus, if you have Docker and are able to run docker compose, running following command in the project directory (where docker-compose.yaml is) will start the whole project:
 
 ```bash
 $ docker compose up --build -d
@@ -30,9 +30,11 @@ After grasping the requirements and designing how it should be, LLMs have been h
 There are several problems unsolved that I realized before the implementation and during implementation. 
 - As I mentioned in the callService.js, the system is not fault-tolerant. When a call is created, it is both written to the database (DB) and sent to the message queue (MQ). My implementation does not do this atomically, so it is not fault-tolerant and this may lead to inconsistencies if any of DB or MQ is down. I was aware of outbox pattern but since I haven't used it before, I was not sure if I were to handle the complexity it would bring. Thus, I implemented the project in a faulty way. (ChatGPT has also suggested outbox pattern.)
 
-- I am not sure if the tasks in the queue is persistant (I believe it requires the Redis setup to be configured with a flag). Thus, this is another issue my project has. My implementation depends on MQ's retry mechanism, however, it feels like it should live in DB or somewhere else. If Redis that the BullMQ depend on can be persistent, it is not a problem.
+- I am not sure if the tasks in the queue is persistent (I believe it requires the Redis setup to be configured with a flag, even though I have configured it as append only file, I am not sure since I haven't tested it. Also, it is not mapped to my file system so it lives in the container.). Thus, this is another issue my project has. My implementation depends on MQ's retry mechanism, however, it feels like it should live in DB or somewhere else. If Redis that the BullMQ depend on can be persistent, it is not a problem.
 
 - Depending on the previous statement, even if Redis is persistent, I am not sure what happens if a worker dies in the middle of the job. As BullMQ will not hear from it, the job will be locked (BullMQ locks the job if it is being processed by a worker) and will wait for the delay. 
+
+- If a call gets deleted when it is being processed by the worker, worker is not aware of it. Thus, it will try to complete the processing. 
 
 ## Future Improvements:
 
@@ -80,74 +82,180 @@ POST /auth/register
 Content-Type: application/json
 
 {
-  "email": "john.doe@example.org",
-  "full_name": "John Doe",
-  "password": "p4ssw0rd"
+    "email": "john.doe@example.org",
+    "full_name": "John Doe",
+    "password": "p4ssw0rd"
 }
 ```
 Response:
 ```http
 HTTP 201 Created
-Content-Type: application/json;
+Content-Type: application/json
 
 {
-  "id": "d75d0e54-9292-42cc-800b-c2578f8a5bb4",
-  "email": "john.doe@example.org",
-  "full_name": "John Doe",
-  "created_at": 
+    "user": {
+        "id": "921166e3-a300-4ce3-8c58-48206ab78118",
+        "email": "john.doe@example.org",
+        "full_name": "John Doe",
+        "created_at": "2025-10-20T11:20:29.642Z"
+    }
 }
 ```
 ---
 #### POST /auth/login
+Request:
 ```http 
 POST /auth/login
 Content-Type: application/json
+
+{
+    "email": "thomas.anderson@matrix.com",
+    "password": "follow_the_white_rabbit"
+}
 ```
-```json
-  // Request:
-  {
-      "email": "john.doe@example.org",
-      "password": "p4ssw0rd"
-  }
-  // Response:
-  {
-      "token": ""
-      "user": {
-          "id": "d75d0e54-9292-42cc-800b-c2578f8a5bb4",
-          "email": "john.doe@example.org",
-          "full_name": "John Doe",
-          "created_at": 
-      }
-  }
+Response:
+```http
+HTTP 200 OK
+Content-Type: application/json
+
+{
+    "token": <your_jwt_token>,
+    "user": {
+        "id": "83d717c6-e774-4be1-8883-e2709d6c62c2",
+        "email": "thomas.anderson@matrix.com",
+        "full_name": "Thomas A. Anderson",
+        "created_at": "2025-10-20T11:20:04.619Z"
+    }
+}
 ```
 ---
 #### GET /auth/me
+Response:
 ```http 
 GET /auth/me
+Content-Type: application/json
 Authorization: Bearer <your_jwt_token>
-```
-```json
-  // Response:
-  {
-      "user": {
-          "userId": "83d717c6-e774-4be1-8883-e2709d6c62c2",
-          "email": "thomas.anderson@matrix.com",
-          "iat": 1760904343,
-          "exp": 1760990743
-      }
-  }
+
+{
+    "user": {
+        "id": "83d717c6-e774-4be1-8883-e2709d6c62c2",
+        "email": "thomas.anderson@matrix.com",
+        "iat": 1760959788,
+        "exp": 1761046188
+    }
+}
 ```
 ---
 ### POST /calls - Create new call
+Request:
 ```http 
 POST /calls
+Content-Type: application/json
 Authorization: Bearer <your_jwt_token>
+
+{
+    "title": "Urgent meeting",
+    "duration": 10000,
+    "participants": [
+        "83d717c6-e774-4be1-8883-e2709d6c62c2",
+        "8fa3a9d2-649c-4130-80df-513f18f63253"
+    ]
+}
+```
+Response:
+```
+HTTP 201 Created
+Content-Type: application/json
+
+{
+    "id": "b2011c8a-288b-4cba-9c1a-4563d001f18d",
+    "title": "Urgent meeting",
+    "duration": 10000,
+    "created_by": "83d717c6-e774-4be1-8883-e2709d6c62c2"
+}
+```
+
+---
+### GET /calls - List the active calls the user have
+Response:
+```http 
+GET /auth/me
+Content-Type: application/json
+Authorization: Bearer <your_jwt_token>
+
+{
+    [
+        {
+            "id": "b2011c8a-288b-4cba-9c1a-4563d001f18d",
+            "title": "Urgent meeting",
+            "duration": 10000,
+            "created_at": "2025-10-20T11:31:45.481Z",
+            "created_by": "83d717c6-e774-4be1-8883-e2709d6c62c2",
+            "participants": [
+                "83d717c6-e774-4be1-8883-e2709d6c62c2",
+                "8fa3a9d2-649c-4130-80df-513f18f63253"
+            ]
+        }
+    ]
+}
 ```
 ---
-- GET /calls -> List calls
+### GET /calls/:id - Get the details of the call with given ID
+Response:
+```http 
+GET /calls/:id
+Content-Type: application/json
+Authorization: Bearer <your_jwt_token>
+
+{
+    "id": "b2011c8a-288b-4cba-9c1a-4563d001f18d"
+    "title": "Urgent meeting",
+    "duration": 10000,
+    "created_at": "2025-10-20T11:31:45.481Z",
+    "created_by": "83d717c6-e774-4be1-8883-e2709d6c62c2",
+    "participants": [
+        "83d717c6-e774-4be1-8883-e2709d6c62c2",
+        "8fa3a9d2-649c-4130-80df-513f18f63253"
+    ]
+}
+```
 ---
-- GET /calls/:id -> Get details
+### DELETE /calls/:id - Soft delete the call with given ID (deactivate the call)
+Response:
+```http 
+DELETE /calls/:id
+Content-Type: application/json
+Authorization: Bearer <your_jwt_token>
+
+{
+    "created_by": "83d717c6-e774-4be1-8883-e2709d6c62c2",
+    "id": "39210d07-8591-4adb-b0d5-706632363220"
+    "message": "Call deleted successfully."
+}
+```
 ---
-- DELETE /calls/:id -> Delete
----
-- GET /calls/:id/transcription -> Get transcription status/result
+### GET /calls/:id/transcription - Get transcription status/result of the call with given ID
+Response (pending/processing/failed):
+```http 
+GET /calls/:id/transcription
+Content-Type: application/json
+Authorization: Bearer <your_jwt_token>
+
+{
+  "id": "88283a30-8906-438d-8406-f1faf4020ef1",
+  "callId"
+  "status": "pending",
+}
+```
+Response (completed):
+```http 
+GET /calls/:id/transcription
+Content-Type: application/json
+Authorization: Bearer <your_jwt_token>
+
+{
+  "id": "88283a30-8906-438d-8406-f1faf4020ef1",
+  "status": "completed",
+  "transcription": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam consectetur rutrum eleifend."
+}
+```
