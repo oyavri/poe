@@ -42,7 +42,7 @@ export const callService = {
         a working project I wanted to implement it this way.
         */
 
-        return { ok: true, status: 200, data: call };
+        return { ok: true, status: 201, data: call };
     },
 
     async getCallsByUserId(userId) {
