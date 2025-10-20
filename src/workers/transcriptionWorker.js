@@ -86,7 +86,7 @@ worker.on('failed', (job, err) => {
     logger.info(`Job ${job.id} failed on attempt ${job.attemptsMade}: ${err.message}`);
 
     if (job.attemptsMade === job.opts.attempts) {
-        // set status as failed after retry attempts
+        // set status as failed after all of the retry attempts
         const query = `
             UPDATE transcriptions
             SET status = 'failed'
