@@ -45,7 +45,7 @@ export const callController = {
                 return res.status(result.status).json({ error: result.message });
             }
 
-            return res.status(result.status).json({ call: result.data });
+            return res.status(result.status).json(result.data);
         } catch (err) {
             res.status(500).json({ error: err.message });
         }

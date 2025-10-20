@@ -82,18 +82,14 @@ export const callService = {
         }
 
         const call = {
-            title: rows[0].title,
-            duration: rows[0].duration,
-            created_at: rows[0].created_at,
-            created_by: rows[0].created_by,
-            participants: rows.map(r => r.participant_id),
+            title: result.rows[0].title,
+            duration: result.rows[0].duration,
+            created_at: result.rows[0].created_at,
+            created_by: result.rows[0].created_by,
+            participants: result.rows.map(r => r.participant_id),
         };
 
-        for (const row of result.rows) {
-            call.participants.push(row[2]);
-        }
-
-        return { ok: true, status: 200, data: { ...call } };
+        return { ok: true, status: 200, data: call };
     },
 
     async deleteCall(callId, userId) {

@@ -27,7 +27,7 @@ export const callRepository = {
             );
     },
 
-    // returns an array of calls => [{ id, title, duration, created_at, participants[] }, { ...call }, ...]
+    // returns all of the calls of given userId
     async getCallsByUserId(userId) {
         const query = `
             SELECT c.id AS call_id, c.title, c.duration, c.created_at, c.created_by, p.user_id AS participant_id
@@ -46,7 +46,7 @@ export const callRepository = {
         return result;
     },
 
-    // returns call { title, duration, created_at, created_by, participants[] }
+    // returns call with given callId of given userId 
     async getCallById(callId, userId) {
         const query = `
             SELECT c.title, c.duration, c.created_by, c.created_at, p.user_id AS participant_id
