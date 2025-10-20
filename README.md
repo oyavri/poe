@@ -34,7 +34,7 @@ There are several problems unsolved that I realized before the implementation an
 
 - Depending on the previous statement, even if Redis is persistent, I am not sure what happens if a worker dies in the middle of the job. As BullMQ will not hear from it, the job will be locked (BullMQ locks the job if it is being processed by a worker) and will wait for the delay. 
 
-- If a call gets deleted when it is being processed by the worker, worker is not aware of it. Thus, it will try to complete the processing. 
+- If a call gets deleted during processing, the worker is not aware of it. Thus, it will try to complete the transcription process. 
 
 ## Future Improvements:
 
@@ -49,27 +49,26 @@ There are several problems unsolved that I realized before the implementation an
 - Linter can be set up so that the code repository can be consistent (hopefully).
 - TypeScript would be a huge improvement for developer experience... (I've suffered a lot from the runtime errors).
 - Move domains to routers instead of stacking them in the program entry point (./src/server/app.js)
-- Graceful shutdown for workers.
 - Better logging, can be considered as analytics but still worth a mention.
 
 ## Case requirements:
 
 ### Call Management:
-- [ ] Must be able to create a new call. 
+- [x] Must be able to create a new call. 
   - Title (e.g. "Client Meeting")
   - Duration
   - Participants
 
-- [ ] Must be able to list calls.
-- [ ] Must be able to view call details.
-- [ ] Must be able to delete a call.
+- [x] Must be able to list calls.
+- [x] Must be able to view call details.
+- [x] Must be able to delete a call.
 
 ### Transcription Service:
 
-- [ ] Transcription should start automatically when a call is created.
-- [ ] The process must be asynchronous (run in the background).
-- [ ] There must be status tracking: pending -> processing -> completed/failed.
-- [ ] The transcription text will be simulated (no real AI service).
+- [x] Transcription should start automatically when a call is created.
+- [x] The process must be asynchronous (run in the background).
+- [x] There must be status tracking: pending -> processing -> completed/failed.
+- [x] The transcription text will be simulated (no real AI service).
   - Simple simulation: 2-10 seconds delay + random text generation.
   - 5% error simulation (for testing and the retry mechanism).
 
