@@ -27,5 +27,5 @@ export const bullMqConfig = {
     bullMqGlobalConcurrency: getEnvVariable('BULLMQ_GLOBAL_CONCURRENCY'),
 
     // Transcription config
-    transcriptionQueue: "generateTranscription",
+    transcriptionQueue: "transcription",
 };
