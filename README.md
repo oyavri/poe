@@ -1,12 +1,12 @@
 # Poe - AI Call Assistant Platform
 
-The project is developed for the technical case study of backend developer role at Teknasyon. The aim of the project is to create a (simulation of -- transcription is exempt from the scope of the technical case) an AI-powered phone assistant platform. Using this platform, users can record their phone calls and have them automatically transcribed by AI.
+The project is developed for the technical case study of backend developer role at Teknasyon. The aim of the project is to create (a simulation of &mdash; transcription is exempt from the scope of the technical case) an AI-powered phone assistant platform. Using this platform, users can record their phone calls and have them automatically transcribed by AI.
 
-The name is inspired by the receptionist in the Raven Hotel in Altered Carbon. Which is also a reference to Edgar Allan Poe.
+The name of the platform is inspired by the receptionist in the Raven Hotel in Altered Carbon. Which is also a reference to Edgar Allan Poe.
 
 ## How to run the project
 
-Project is fully dockerized, thus, if you have Docker and are able to run docker compose, running following command in the project directory (where docker-compose.yaml is) will start the whole project:
+Project is fully dockerized, thus, if you have Docker Engine and are able to run docker compose, running following command in the project directory (where docker-compose.yaml is) will start the whole project:
 
 ```bash
 $ docker compose up --build -d
@@ -20,19 +20,21 @@ $ docker compose down
 
 ## Remarks & Notes:
  
-It was a nice challenge to test my skills, even though I am familiar with the concepts (how authentication should be, how the flow should be etc.) it was my first time implementing them. It has been a long time since I used Node.js (or JavaScript) and to be honest, it does not seem like an idiomatic JavaScript implementation. It would be nicer if I have chosen TypeScript but I was not sure if it was allowed or not. 
+It was a nice challenge to test my skills, even though I am familiar with the concepts (how authentication should be, how the flow should be etc.) it was my first time implementing them. It has been a long time since I used Node.js (or JavaScript) and to be honest my implementation does not seem like an idiomatic JavaScript implementation. It would be nicer if I have chosen TypeScript but I was not sure if it was allowed or not. 
 
-It would probably be easier if I were to use NestJS as it already provides boilerplate for me and improves development experience. However, since I had limited time and was not going to spend much of it to learn the framework, I chose Express.js. Moreover, at the beginning, I was trying to use an ORM (for the first time again) and was not very happy with it (setting up Prisma took more than I expected) so the queries are hard coded and I have mixed feelings about it. Also, as I chose the technology stack on my familiarity, I used PostgreSQL because I have previously worked with it (+ it is RDBMS which is also what I'm familiar with).
+It would probably be easier if I were to use NestJS as it already provides boilerplate for me and improves development experience. However, since I had limited time and was not planning to spend much of it to learn the framework, I chose Express.js. Moreover, at the beginning, I was trying to use an ORM (for the first time again) and was not very happy with it (setting up Prisma took more than I expected) so the queries are hard coded and I have mixed feelings about it. Also, as I chose the technology stack based on my familiarity, I used PostgreSQL because I have previously worked with it (+ it is an RDBMS which is also what I'm familiar with).
 
-After grasping the requirements and designing how it should be, LLMs have been helpful for me to find my way out through the development. Along the way of design, I had to make some assumptions. 
-- A new call requires a duration field. But a duration can only be determined after a call is ended, thus, the generated "call" is actually a "recording" that is ready to be processed by the transcription service. Also, we are not doing a real-time transcription so it is a post-processing job. The audio of calls is stored in a place like a CDN. I would store the link to the CDN media in the DB but I did not try to generate a URL for that purpose, thus there is no field for that in DB.
+After grasping the requirements and designing how it should be, ChatGPT has been helpful for me to find my way out through the development. Along the way of design, I had to make some assumptions:
 
-There are several problems unsolved that I realized before the implementation and during implementation. 
-- As I mentioned in the callService.js, the system is not fault-tolerant. When a call is created, it is both written to the database (DB) and sent to the message queue (MQ). My implementation does not do this atomically, so it is not fault-tolerant and this may lead to inconsistencies if any of DB or MQ is down. I was aware of outbox pattern but since I haven't used it before, I was not sure if I were to handle the complexity it would bring. Thus, I implemented the project in a faulty way. (ChatGPT has also suggested outbox pattern.)
+> A new call requires a duration field. But a duration can only be determined after a call is ended, thus, the generated "call" is actually a "recording" that is ready to be processed by the transcription service. Also, we are not doing a real-time transcription so it is a post-processing job. The audio of calls is stored in a place like a CDN. I would store the link to the CDN media in the DB but I did not try to generate a URL for that purpose, thus there is no field for that in DB.
 
-- I am not sure if the tasks in the queue is persistent (I believe it requires the Redis setup to be configured with a flag, even though I have configured it as append only file, I am not sure since I haven't tested it. Also, it is not mapped to my file system so it lives in the container.). Thus, this is another issue my project has. My implementation depends on MQ's retry mechanism, however, it feels like it should live in DB or somewhere else. If Redis that the BullMQ depend on can be persistent, it is not a problem.
+There are several problems unsolved that I realized before the implementation and during implementation.
 
-- Depending on the previous statement, even if Redis is persistent, I am not sure what happens if a worker dies in the middle of the job. As BullMQ will not hear from it, the job will be locked (BullMQ locks the job if it is being processed by a worker) and will wait for the delay. 
+- As I mentioned in the callService.js, the system is not fault-tolerant. When a call is created, it is both written to the database (DB) and sent to the message queue (MQ). My implementation does not do this atomically, so it is not fault-tolerant and this may lead to inconsistencies if any of DB or MQ is down. I was aware of outbox pattern but since I haven't used it before, I was not sure if I would be able to handle the complexity it would bring. Thus, I implemented the project in this faulty way. (ChatGPT has also suggested outbox pattern.)
+
+- I am not sure if the tasks in the queue is persistent (I think it requires the Redis setup to be configured with a flag, even though I configured it as append only file, I am not sure about the persistence since I haven't tested it. Also, it is not mapped to my file system so it lives in the container.). Thus, this is another issue my project has. My implementation depends on MQ's retry mechanism, however, it feels like it should live in DB or somewhere else. If Redis that the BullMQ depend on can be persistent, then I think it is not a problem.
+
+- Depending on the previous statement, even if Redis is persistent, I am not sure what happens if a worker dies in the middle of the job. As BullMQ will not hear from it, the job will be locked (BullMQ locks the job if it is being processed by a worker) and will wait for the delay. But I am not sure if it has a release mechanism of the lock when the worker stops responding. 
 
 - If a call gets deleted during processing, the worker is not aware of it. Thus, it will try to complete the transcription process. 
 
@@ -42,13 +44,13 @@ There are several problems unsolved that I realized before the implementation an
 - Outbox pattern for fault tolerance & consistency.
 - Better structuring for workers can be done. I don't like current version of it.
 - Cache utilization is suggested for the project. If Redis is not for BullMQ, then a caching mechanism can be implemented. Caching for frequently accessed transcriptions can be done.
-- Current implementation creates a new call with owner alongside with it and only owner can check the transcription test and transcription status. This means more than one user can ask for transcription of the same call by being an owner of a duplicate call (with different call id) entry. Asking for transcription more than once means wasted resources. It can be implemented in a way that all users access the same transcription of the same call. 
+- Current implementation creates a new call with owner alongside with it and only owner can check the transcription text and transcription status. This means more than one user can ask for transcription of the same call by being an owner of a duplicate call entry with different call id. Asking for transcription more than once means wasted resources. It can be implemented in a way that all users access the same transcription of the same call. 
 - CDN for the media can be integrated to the project. Current setup does not have any spot for CDN links to live.
 - Given optional additions can be implemented in the future, currently, only transcription retry is implemented (but might be inconsistent as I mentioned in the Remarks & Notes section.) Optional additions are as follows: filtering, pagination, sorting, transcription retry (can be improved), analytics endpoints, and search functionality.
 - Swagger documentation can be done to be more expressive about the API endpoints.
 - Linter can be set up so that the code repository can be consistent (hopefully).
 - TypeScript would be a huge improvement for developer experience... (I've suffered a lot from the runtime errors).
-- Move domains to routers instead of stacking them in the program entry point (./src/server/app.js)
+- Moving domains to routers instead of stacking them in the program entry point (./src/server/app.js)
 - Better logging, can be considered as analytics but still worth a mention.
 
 ## Case requirements:
@@ -182,21 +184,19 @@ GET /auth/me
 Content-Type: application/json
 Authorization: Bearer <your_jwt_token>
 
-{
-    [
-        {
-            "id": "b2011c8a-288b-4cba-9c1a-4563d001f18d",
-            "title": "Urgent meeting",
-            "duration": 10000,
-            "created_at": "2025-10-20T11:31:45.481Z",
-            "created_by": "83d717c6-e774-4be1-8883-e2709d6c62c2",
-            "participants": [
-                "83d717c6-e774-4be1-8883-e2709d6c62c2",
-                "8fa3a9d2-649c-4130-80df-513f18f63253"
-            ]
-        }
-    ]
-}
+[
+    {
+        "id": "b2011c8a-288b-4cba-9c1a-4563d001f18d",
+        "title": "Urgent meeting",
+        "duration": 10000,
+        "created_at": "2025-10-20T11:31:45.481Z",
+        "created_by": "83d717c6-e774-4be1-8883-e2709d6c62c2",
+        "participants": [
+            "83d717c6-e774-4be1-8883-e2709d6c62c2",
+            "8fa3a9d2-649c-4130-80df-513f18f63253"
+        ]
+    }
+]
 ```
 ---
 ### GET /calls/:id - Get the details of the call with given ID
@@ -227,8 +227,8 @@ Content-Type: application/json
 Authorization: Bearer <your_jwt_token>
 
 {
-    "created_by": "83d717c6-e774-4be1-8883-e2709d6c62c2",
     "id": "39210d07-8591-4adb-b0d5-706632363220"
+    "created_by": "83d717c6-e774-4be1-8883-e2709d6c62c2",
     "message": "Call deleted successfully."
 }
 ```
@@ -242,8 +242,8 @@ Authorization: Bearer <your_jwt_token>
 
 {
   "id": "88283a30-8906-438d-8406-f1faf4020ef1",
-  "callId"
-  "status": "pending",
+  "call_id": "39210d07-8591-4adb-b0d5-706632363220",
+  "status": "pending"
 }
 ```
 Response (completed):
@@ -254,6 +254,7 @@ Authorization: Bearer <your_jwt_token>
 
 {
   "id": "88283a30-8906-438d-8406-f1faf4020ef1",
+  "call_id": "39210d07-8591-4adb-b0d5-706632363220",
   "status": "completed",
   "transcription": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam consectetur rutrum eleifend."
 }
