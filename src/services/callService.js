@@ -82,6 +82,7 @@ export const callService = {
         }
 
         const call = {
+            id: result.rows[0].id,
             title: result.rows[0].title,
             duration: result.rows[0].duration,
             created_at: result.rows[0].created_at,
