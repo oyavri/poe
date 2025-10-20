@@ -72,6 +72,7 @@ export const callRepository = {
             )
             UPDATE calls c 
             SET active = false
+            FROM target
             WHERE c.id = target.id
                 AND target.created_by = $2
                 AND target.active = true
