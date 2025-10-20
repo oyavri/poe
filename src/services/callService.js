@@ -101,7 +101,7 @@ export const callService = {
 
             if (result.rowCount === 1) {
                 await client.query('COMMIT');
-                return { ok: true, status: 200, message: 'Call deleted successfully.' };
+                return { ok: true, status: 200, data: { ...result.rows[0], message: 'Call deleted successfully.' } };
             }
 
             const check = await callRepository.getCallByIdForUpdate(client, callId);
