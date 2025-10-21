@@ -6,6 +6,8 @@ The name of the platform is inspired by the receptionist in the Raven Hotel in A
 
 ## How to run the project
 
+Before running the project, the `.env.example` file should be renamed to `.env` for the configuration of the project. It is possible to run the project without changing anything in the file. 
+
 Project is fully dockerized, thus, if you have Docker Engine and are able to run docker compose, running following command in the project directory (where docker-compose.yaml is) will start the whole project:
 
 ```bash
